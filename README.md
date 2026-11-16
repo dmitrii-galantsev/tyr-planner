@@ -77,7 +77,8 @@ URL, so there are no version numbers to bump by hand.
 
 ### Updating
 
-- **Game patch:** Dependabot opens a pull request when GameData changes. Locally:
+- **Game patch:** popi.tech picks it up on its own within the hour (see Deployment). For the repository
+  and GitHub Pages, Dependabot opens a pull request when GameData changes; merge it. Locally:
   `git submodule update --remote GameData && npm run build && npm test`. If the patch changes art, fetch
   GameData's images (`git -C GameData lfs pull --include "assets/images/**"`) and run `npm run assets`.
   A new tank, shell or component also needs an entry in the id lists at the top of `site/sharing.js`
@@ -90,16 +91,29 @@ URL, so there are no version numbers to bump by hand.
 `npm test` (`scripts/check.mjs`) runs offline:
 
 - the reference build `otf4zfz9` against the numbers tyrhq.com showed for it on 2026-11-11
-  (233.5 damage, 56.2 % camo, 75.26 kph, 12 secondary shells, −11° gun depression, 2.5 s precision aim);
+  (233.5 damage, 56.2 % camo, 75.26 kph, 12 secondary shells, −11° gun depression, 2.5 s precision aim),
+  enforced for GameData CL 37952; on other game versions every tank only has to compute;
 - share links for every tank's stock build and 360 random builds;
 - `TYR01_` game codes: byte parity with a code exported from tyrhq.com, UTF-16 names, round trips and
   rejection of malformed codes.
 
 ## Deployment
 
-`./deploy.sh` builds, runs the checks, then copies `dist/` to popi.tech's web root and `server/` to the
-preview service, and restarts it. Hosts and paths can be overridden with `DEPLOY_HOST`, `SITE_DIR` and
-`EMBED_DIR`.
+popi.tech/hq deploys itself. On popi, `tyr-planner-sync` (`server/tyr-planner-sync.service` and `.timer`,
+running `scripts/sync-popi.sh` hourly) checks a clone of this repository for:
+
+- new commits on `main`,
+- a newer GameData than the pinned submodule (popi does not wait for the Dependabot pull request),
+- a new `data/` snapshot (community builds).
+
+When something changed, it regenerates only the images Stoke changed, builds, runs `npm test`, and only
+then publishes `dist/` and the preview service and restarts it. If the checks fail (for example a patch
+adds a tank whose id `site/sharing.js` does not know yet), the live site stays as it was and
+`journalctl -u tyr-planner-sync` says why.
+
+`./deploy.sh` runs the same sync immediately after copying your local `data/` to popi. It deploys
+`origin/main`, so it refuses to run with uncommitted or unpushed changes. GitHub Pages is built by
+`.github/workflows/pages.yml` on every push to `main`.
 
 The preview service (`server/`, systemd unit `server/tyrhq-embed.service`, listening on 127.0.0.1:8787):
 
@@ -113,7 +127,9 @@ nginx pieces: `server/nginx-tyrhq-embed.conf` (in the server block: proxies the 
 to the static planner if the service is down, and sends `Cache-Control: no-cache` for the planner's page,
 scripts and data) and `server/nginx-tyrhq-cache.conf` (http level: the map behind that header).
 
-GitHub Pages is built by `.github/workflows/pages.yml` on every push to `main`.
+Setting up a server from scratch: clone the repository to `~/tyr-planner` with its submodule
+(`GIT_LFS_SKIP_SMUDGE=1`), install `git-lfs` and Pillow (`python3-pil`), copy the two units to
+`/etc/systemd/system/`, enable `tyr-planner-sync.timer` and `tyrhq-embed`, and add the nginx snippets.
 
 ## Layout
 
@@ -128,8 +144,8 @@ GitHub Pages is built by `.github/workflows/pages.yml` on every push to `main`.
 | `site/vendor/tyrhq-engine.js` | Tyr HQ's engine (generated, do not edit) |
 | `site/images/` | art from GameData (plus `backdrops/`), and its license |
 | `site/fonts/` | Barlow Condensed, JetBrains Mono, Inter (SIL OFL) |
-| `server/` | link-preview service, its systemd unit and nginx snippets |
-| `scripts/` | build, checks, art, engine vendoring, backdrop pipeline |
+| `server/` | link-preview service, the systemd units on popi, nginx snippets |
+| `scripts/` | build, checks, popi sync, art, engine vendoring, backdrop pipeline |
 | `GameData/` | Stoke Games' data export (submodule) |
 | `data/` | local only: `builds.json` (community builds) and `meta.json` (its date) |
 

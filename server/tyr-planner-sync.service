@@ -1,0 +1,19 @@
+# /etc/systemd/system/tyr-planner-sync.service on popi: rebuilds and publishes popi.tech/hq from
+# the repository's main branch and the newest GameData (scripts/sync-popi.sh). Started hourly by
+# tyr-planner-sync.timer and by ./deploy.sh; FORCE=1 in the environment redeploys unconditionally.
+[Unit]
+Description=Sync popi.tech/hq with tyr-planner main and the newest GameData
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=popi
+WorkingDirectory=/home/popi/tyr-planner
+Environment=HOME=/home/popi
+# Update the checkout first, so the script that runs is the one on main.
+ExecStartPre=/usr/bin/git fetch --quiet origin main
+ExecStartPre=/usr/bin/git reset --quiet --hard FETCH_HEAD
+ExecStart=/home/popi/tyr-planner/scripts/sync-popi.sh
+TimeoutStartSec=20min
+Nice=10

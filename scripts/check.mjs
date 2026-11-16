@@ -1,6 +1,7 @@
 // Offline checks, run by `npm test` and by the Pages workflow before publishing:
 //   1. stat engine parity: the reference build otf4zfz9 ("official costco build") against the numbers
-//      tyrhq.com showed for it on 2026-11-11;
+//      tyrhq.com showed for it on 2026-11-11 (GameData CL 37952; other game versions only check that
+//      every tank's stats compute, since a balance patch changes the numbers);
 //   2. share links and TYR01 game codes: round trips, byte parity with a code exported from tyrhq.com,
 //      UTF-16 names, and rejection of malformed codes.
 import assert from 'node:assert/strict';
@@ -10,7 +11,9 @@ import { computeBuild, computeBuildFirepower, createPlannerCatalog, getDefaultSe
 import { encodeShare, decodeShare, encodeGameCode, decodeGameCode } from '../site/sharing.js';
 import { loadBundle } from './gamedata.mjs';
 
-const index = createPlannerCatalog(loadBundle(path.resolve(import.meta.dirname, '..')));
+const bundle = loadBundle(path.resolve(import.meta.dirname, '..'));
+const index = createPlannerCatalog(bundle);
+const REFERENCE_CL = 37952; // the game version the expected numbers below were read for
 
 // ---------- 1. engine parity ----------
 const reference = {
@@ -43,8 +46,15 @@ const expected = {
   DispersionReductionSpeed: 0.847,
 };
 
+for (const v of index.vehicles) {
+  const stock = getDefaultSelection(index, v.id);
+  assert.ok(computeBuild(index, stock)?.statCards.length, `no stats for ${v.id}`);
+  assert.ok(Number.isFinite(computeBuildFirepower(index, stock).guaranteed?.dpm), `no firepower for ${v.id}`);
+}
 const res = computeBuild(index, reference);
 assert.ok(res, 'engine returned no result');
+const changelist = bundle.metadata?.sourceChangelist;
+if (changelist !== REFERENCE_CL) console.log(`GameData CL ${changelist}: reference numbers are for CL ${REFERENCE_CL}, shown but not enforced`);
 let failures = 0;
 for (const [key, want] of Object.entries(expected)) {
   const got = res.stats[key];
@@ -54,7 +64,7 @@ for (const [key, want] of Object.entries(expected)) {
 }
 const fire = computeBuildFirepower(index, reference);
 console.log(`     dpm ${fire.guaranteed.dpm.toFixed(2)} / ${fire.withConditional.dpm.toFixed(2)} conditional`);
-assert.equal(failures, 0, `${failures} stat mismatch(es) against tyrhq.com (233.5 damage, 56.2 % camo, 75.26 kph)`);
+if (changelist === REFERENCE_CL) assert.equal(failures, 0, `${failures} stat mismatch(es) against tyrhq.com (233.5 damage, 56.2 % camo, 75.26 kph)`);
 
 // ---------- 2. sharing ----------
 // Share links round-trip for every tank's stock build and for random builds.

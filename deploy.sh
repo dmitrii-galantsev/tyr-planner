@@ -1,22 +1,18 @@
 #!/bin/sh
-# Builds the site and publishes it to popi.tech/hq, together with the link-preview service.
+# Publishes popi.tech/hq now. popi builds the repository's main branch with the newest GameData
+# (scripts/sync-popi.sh, also run hourly by a timer there), so push your commits first. This copies
+# data/ (community builds, not in git) to popi and runs that sync.
 #   DEPLOY_HOST  ssh host (default: popi)
-#   SITE_DIR     web root on that host (default: /opt/data/www/hq)
-#   EMBED_DIR    preview service code on that host (default: ~/tyrhq-embed, systemd unit tyrhq-embed)
 set -eu
 cd "$(dirname "$0")"
 HOST=${DEPLOY_HOST:-popi}
-SITE_DIR=${SITE_DIR:-/opt/data/www/hq}
-EMBED_DIR=${EMBED_DIR:-tyrhq-embed}
 
-node scripts/build.mjs
-node scripts/check.mjs > /dev/null
+git fetch --quiet origin main
+if [ -n "$(git status --porcelain --untracked-files=no)" ] || [ -n "$(git log --oneline origin/main..HEAD)" ]; then
+  echo "popi deploys origin/main: commit and push your changes first" >&2
+  exit 1
+fi
 
-# nginx serves the files as another user, so everything must be world-readable.
-rsync -rltp --delete --chmod=D755,F644 dist/ "$HOST:$SITE_DIR/"
-
-# The preview service imports data.js and the planner's modules from SITE_DIR when it starts,
-# so it restarts after every site deploy.
-rsync -rltp --delete --exclude node_modules --chmod=D755,F644 server/ "$HOST:$EMBED_DIR/"
-ssh "$HOST" "cd $EMBED_DIR && npm ci --omit=dev --no-audit --no-fund --silent && sudo -n systemctl restart tyrhq-embed"
-echo "deployed: https://popi.tech/hq/"
+if [ -d data ]; then rsync -rlt --delete data/ "$HOST:tyr-planner/data/"; fi
+ssh "$HOST" 'sudo -n systemctl start tyr-planner-sync; s=$?; journalctl -u tyr-planner-sync -n 6 --no-pager -o cat; exit $s'
+echo "https://popi.tech/hq/"

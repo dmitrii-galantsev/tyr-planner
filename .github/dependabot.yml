@@ -1,5 +1,5 @@
 # Opens a pull request when Stoke Games publishes new GameData (a game patch), and keeps the
-# workflow actions current. Merging it rebuilds GitHub Pages; run ./deploy.sh for popi.tech.
+# workflow actions current. Merging it rebuilds GitHub Pages (popi.tech updates on its own).
 version: 2
 updates:
   - package-ecosystem: gitsubmodule
