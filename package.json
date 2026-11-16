@@ -1,0 +1,22 @@
+{
+  "name": "tyr-planner",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Build planner for Tyr (Stoke Games): talents, components, shells and live stats, with link previews for Discord.",
+  "license": "MIT",
+  "repository": "github:dmitrii-galantsev/tyr-planner",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/check.mjs",
+    "serve": "python3 -m http.server 8781 --bind 127.0.0.1 --directory dist",
+    "assets": "python3 scripts/assets.py",
+    "vendor:engine": "node scripts/vendor-engine.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

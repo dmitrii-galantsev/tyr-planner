@@ -1,0 +1,12 @@
+# Opens a pull request when Stoke Games publishes new GameData (a game patch), and keeps the
+# workflow actions current. Merging it rebuilds GitHub Pages; run ./deploy.sh for popi.tech.
+version: 2
+updates:
+  - package-ecosystem: gitsubmodule
+    directory: /
+    schedule:
+      interval: daily
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

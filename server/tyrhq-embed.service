@@ -1,0 +1,25 @@
+# /etc/systemd/system/tyrhq-embed.service
+[Unit]
+Description=TYR HQ link previews (Open Graph / Discord cards for popi.tech/hq/b/)
+After=network.target
+
+[Service]
+Type=simple
+User=popi
+Group=popi
+WorkingDirectory=/home/popi/tyrhq-embed
+Environment=PORT=8787 HOST=127.0.0.1 SITE_DIR=/opt/data/www/hq PUBLIC_BASE=https://popi.tech/hq/ NODE_ENV=production
+ExecStart=/usr/bin/node embed.mjs
+Restart=on-failure
+RestartSec=3
+MemoryMax=300M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

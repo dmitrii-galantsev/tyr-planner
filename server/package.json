@@ -1,0 +1,10 @@
+{
+  "name": "tyrhq-embed",
+  "private": true,
+  "type": "module",
+  "description": "Link previews (Discord/OG cards) for TYR HQ shared builds",
+  "main": "embed.mjs",
+  "scripts": { "start": "node embed.mjs" },
+  "engines": { "node": ">=20" },
+  "dependencies": { "@napi-rs/canvas": "1.1.1" }
+}

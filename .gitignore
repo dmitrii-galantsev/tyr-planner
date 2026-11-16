@@ -1,0 +1,14 @@
+# build output
+dist/
+node_modules/
+__pycache__/
+
+# Community builds from tyrhq.com are kept out of the repository (see README).
+data/
+
+# Personal tools and archives that are not published.
+local/
+
+# Backdrop inputs: game screenshots and the 10 MB measured overlay layer.
+scripts/backdrop/captures/
+*.npz

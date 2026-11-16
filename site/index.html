@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#131820">
+<meta name="description" content="Tyr build planner: tanks, talents, components, shells and community builds.">
+<title>Tyr HQ build planner</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="icon" href="./favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="./favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="manifest" href="./site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:title" content="TYR HQ · Tyr build planner">
+<meta property="og:url" content="https://popi.tech/hq/">
+<meta property="og:image" content="https://popi.tech/hq/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="./fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="./fonts/jetbrains-mono-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="./fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header id="bar">
+  <div class="brand">TYR<span>HQ</span></div>
+  <nav id="views" aria-label="Views">
+    <a href="#v=build" data-view="build">Build</a>
+    <a href="#v=tanks" data-view="tanks">Tanks</a>
+    <a href="#v=builds" data-view="builds">Community</a>
+    <a href="#v=components" data-view="components">Components</a>
+    <a href="#v=talents" data-view="talents">Talents</a>
+  </nav>
+</header>
+
+<main>
+  <section id="view-build" class="view" data-view="build">
+    <div class="build-head">
+      <div class="hero">
+        <img id="hero-art" class="hero-art" alt="" decoding="async">
+        <div id="hero-meta" class="hero-meta"></div>
+        <h1 id="hero-name" class="hero-name">Tyr</h1>
+        <input id="title" class="title-input" spellcheck="false" placeholder="Name this build" aria-label="Build name" maxlength="48">
+      </div>
+      <div id="vehicles" class="vehicles" role="group" aria-label="Tank"></div>
+      <select id="vehicle-select" class="vehicle-select" aria-label="Tank"></select>
+      <div class="build-actions">
+        <div class="export" role="group" aria-label="Share">
+          <button id="act-code" type="button" class="primary" data-icon="export" title="Copy a TYR01 code for Tyr's loadout import">Export</button>
+          <button id="act-link" type="button" class="secondary" data-icon="link" title="Copy a link to this build (L). It shows the whole build when posted on Discord.">Copy link</button>
+        </div>
+        <div class="local" role="group" aria-label="This browser">
+          <button id="act-save" type="button" data-icon="bookmark" title="Save in this browser (S)">Save</button>
+          <button id="act-import" type="button" data-icon="import" title="Paste a TYR01 code or build JSON">Import</button>
+          <button id="act-new" type="button" data-icon="reset" title="Start over on this tank (N)">New</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="build-grid">
+      <aside class="col-load">
+        <section class="card">
+          <h2>Components</h2>
+          <div id="slots" class="cslots"></div>
+        </section>
+        <section class="card">
+          <h2>Shells</h2>
+          <div id="shells" class="shells"></div>
+        </section>
+        <section class="card" id="saved-card">
+          <h2>Saved builds</h2>
+          <div id="local-builds" class="local-builds"></div>
+        </section>
+      </aside>
+
+      <section class="col-tree card">
+        <div class="tree-top">
+          <h2>Talents</h2>
+          <div id="points" class="points"></div>
+          <div class="tree-tools">
+            <button id="act-fill" type="button" data-icon="wand" title="Spend the remaining points top-down">Auto-fill</button>
+            <button id="act-reset" type="button" data-icon="trash" title="Remove every talent point">Clear</button>
+          </div>
+        </div>
+        <div id="info" class="info" role="status" aria-live="polite"></div>
+        <div id="tree" class="tree"></div>
+      </section>
+
+      <aside class="col-stats card">
+        <div class="stats-top">
+          <h2>Stats</h2>
+          <div id="preview" class="seg" role="group" aria-label="Shell used for stats"></div>
+        </div>
+        <div id="headline" class="headline"></div>
+        <div id="statsheet" class="statsheet"></div>
+        <label class="only-changed"><input id="only-changed" type="checkbox"> Only changed</label>
+      </aside>
+    </div>
+  </section>
+
+  <section id="view-tanks" class="view" data-view="tanks" hidden>
+    <div class="view-head">
+      <h1>Tanks</h1>
+    </div>
+    <div class="table-card"><table id="tanks-table" class="data clickable"></table></div>
+  </section>
+
+  <section id="view-builds" class="view" data-view="builds" hidden>
+    <div class="view-head">
+      <h1>Community builds</h1>
+      <input id="builds-search" class="search" type="search" placeholder="Search name or author" autocomplete="off" spellcheck="false" aria-label="Search community builds">
+      <select id="builds-tank" aria-label="Filter by tank"></select>
+      <span id="builds-count" class="sub"></span>
+    </div>
+    <div class="table-card"><table id="builds-table" class="data clickable"></table></div>
+  </section>
+
+  <section id="view-components" class="view" data-view="components" hidden>
+    <div class="view-head">
+      <h1>Components</h1>
+      <input id="components-search" class="search" type="search" placeholder="Search name, effect or category" autocomplete="off" spellcheck="false" aria-label="Search components">
+      <span id="components-count" class="sub"></span>
+    </div>
+    <div id="components-grid" class="comp-groups"></div>
+    <div class="view-head"><h1>Shells</h1></div>
+    <div class="table-card"><table id="ammo-table" class="data"></table></div>
+  </section>
+
+  <section id="view-talents" class="view" data-view="talents" hidden>
+    <div class="view-head">
+      <h1>Talents</h1>
+      <input id="talents-search" class="search" type="search" placeholder="Search talents" autocomplete="off" spellcheck="false" aria-label="Search talents">
+      <select id="talents-tank" aria-label="Tank"></select>
+      <span id="talents-count" class="sub"></span>
+    </div>
+    <div id="talents-list" class="talents-list"></div>
+  </section>
+</main>
+
+<footer id="foot"></footer>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
