@@ -1233,7 +1233,8 @@ function bind() {
 
 function renderFooter() {
   const { gameData, builds } = META;
-  const credits = [`Game data: Stoke Games GameData, CL ${gameData.changelist} (${gameData.generatedAt?.slice(0, 10)})`];
+  const patched = gameData.patches?.length ? ` + ${gameData.patches.join(', ')} from patch notes` : '';
+  const credits = [`Game data: Stoke Games GameData, CL ${gameData.changelist} (${gameData.generatedAt?.slice(0, 10)})${patched}`];
   if (builds) credits.push(`community builds from tyrhq.com${builds.fetchedAt ? ` (${builds.fetchedAt})` : ''}`);
   credits.push('stat engine from Tyr HQ (MIT)', 'unofficial, not endorsed by Stoke Games');
   const lic = el('a', null, 'GameData license');
