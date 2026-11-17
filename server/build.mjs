@@ -16,7 +16,7 @@ export async function loadSite(siteDir) {
   const [data, sharing, core] = await Promise.all(['data.js', 'sharing.js', 'core.js'].map((f) => import(moduleUrl(siteDir, f))));
   const idx = core.createPlannerCatalog(data.BUNDLE);
   const icons = new Set(data.TALENT_ICONS);
-  const version = [data.META.gameData?.changelist ?? '', data.META.builds?.fetchedAt ?? ''].join('-');
+  const version = [data.META.gameData?.changelist ?? '', ...(data.META.gameData?.patches ?? []), data.META.builds?.fetchedAt ?? ''].join('-');
   return { siteDir, data, sharing, core, idx, icons, version };
 }
 
