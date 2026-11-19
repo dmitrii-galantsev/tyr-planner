@@ -188,7 +188,7 @@ function renderVehicles() {
     select.addEventListener('change', () => loadTank(idx.vehicleById.get(select.value)));
   }
   select.value = state.sel.vehicleId;
-  document.documentElement.style.setProperty('--tank-bg', `url("./images/backdrops/${state.sel.vehicleId}.webp")`);
+  document.documentElement.style.setProperty('--tank-bg', state.sel.vehicleId === 'terrapin' ? 'none' : `url("./images/backdrops/${state.sel.vehicleId}.webp")`);
   const v = vehicle();
   const hero = $('.hero');
   hero.className = 'hero ' + (v?.classId ?? '');
@@ -201,10 +201,14 @@ function renderVehicles() {
   const meta = $('#hero-meta');
   meta.replaceChildren(icon(v?.classId ?? 'tanks'), el('span', 'cls', v?.classLabel ?? v?.classId ?? ''));
   if (v?.ability?.name) {
-    const ab = el('img', 'ability');
-    ab.src = `${IMG_BASE}abilities/${v.id}.webp`;
-    ab.alt = '';
-    meta.append(el('span', 'sep', '·'), ab, el('span', null, v.ability.name));
+    meta.append(el('span', 'sep', '·'));
+    if (v.ability.icon) {
+      const ab = el('img', 'ability');
+      ab.src = `${IMG_BASE}abilities/${v.id}.webp`;
+      ab.alt = '';
+      meta.append(ab);
+    }
+    meta.append(el('span', null, v.ability.name));
     meta.title = v.ability.description ?? '';
   }
   for (const b of $$('button', host)) {
@@ -1405,6 +1409,7 @@ function renderFooter() {
   const { gameData, builds } = META;
   const patched = gameData.patches?.length ? ` + ${gameData.patches.join(', ')} from patch notes` : '';
   const credits = [`Game data: Stoke Games GameData, CL ${gameData.changelist} (${gameData.generatedAt?.slice(0, 10)})${patched}`];
+  if (gameData.clientStockChangelist) credits.push(`Stock stats: Tyr client CL ${gameData.clientStockChangelist}`);
   if (builds) credits.push(`community builds from tyrhq.com${builds.fetchedAt ? ` (${builds.fetchedAt})` : ''}`);
   credits.push('stat engine from Tyr HQ (MIT)', 'unofficial, not endorsed by Stoke Games');
   const lic = el('a', null, 'GameData license');
@@ -1418,6 +1423,11 @@ function renderFooter() {
     el('span', null, ' · '),
     src,
   );
+  if (gameData.patchSource) {
+    const notes = el('a', null, 'Official patch notes');
+    notes.href = gameData.patchSource;
+    $('#foot').append(' · ', notes);
+  }
 }
 
 function init() {
@@ -1425,9 +1435,9 @@ function init() {
   base.href = APP_BASE;
   document.head.prepend(base);
   const { view, build } = readLocation();
-  const start = build ? { title: build.t, sel: build.sel } : loadDraft() ?? state.saved[0] ?? { sel: getDefaultSelection(idx, 'vanguard') };
-  state.sel = normalizeSelection(start.sel);
-  state.title = buildTitle(start.title);
+  const draft = !build && view && view !== 'build' ? loadDraft() : null;
+  state.sel = normalizeSelection(build?.sel ?? draft?.sel ?? getDefaultSelection(idx, VEHICLES[0].id));
+  state.title = buildTitle(build?.t ?? draft?.title);
   $('#title').value = state.title;
   decorate();
   bind();

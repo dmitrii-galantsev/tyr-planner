@@ -22,7 +22,13 @@ const buildsMeta = readJson(path.join(ROOT, 'data', 'meta.json'), {});
 const talentIcons = fs.readdirSync(path.join(SITE, 'images', 'talents')).filter((f) => f.endsWith('.png')).map((f) => f.slice(0, -4)).sort();
 
 const meta = {
-  gameData: { changelist: bundle.metadata?.sourceChangelist ?? null, generatedAt: bundle.metadata?.generatedAt ?? null, patches: bundle.metadata?.patches ?? [] },
+  gameData: {
+    changelist: bundle.metadata?.sourceChangelist ?? null,
+    generatedAt: bundle.metadata?.generatedAt ?? null,
+    clientStockChangelist: bundle.metadata?.clientStockChangelist ?? null,
+    patches: bundle.metadata?.patches ?? [],
+    patchSource: bundle.metadata?.patchSource ?? null,
+  },
   builds: builds.length ? { count: builds.length, fetchedAt: buildsMeta.scrapedAt ?? null } : null,
 };
 

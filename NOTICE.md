@@ -8,9 +8,13 @@ below, which keeps its own terms.
 - `GameData/` (git submodule of [StokeGames/GameData](https://github.com/StokeGames/GameData)): Tyr's
   exported game data and assets.
 - `site/images/vehicles/`, `abilities/`, `ammo/`, `components/`, `icons/`, `talents/`: GameData images,
-  only resized and re-encoded (`scripts/assets.py`).
-- `dist/data.js` (generated): GameData's `runtime.json`, with the numbers filled into component
-  descriptions for display.
+  only resized and re-encoded (`scripts/assets.py`). The Terrapin vehicle images are resized from
+  the November 19, 2026 Tyr client’s Terrapin base thumbnail (CL 39928). Terrapin talent icons
+  reuse GameData images with the same in-game asset path.
+- `scripts/snapshots/client-39928.json`: stock tank stats and Terrapin talent rows from the
+  November 19, 2026 Tyr client exports. This data is © Stoke Games.
+- `dist/data.js` (generated): GameData's `runtime.json` with stock stats from the client snapshot,
+  Terrapin reference data, and formatted component descriptions.
 
 Used under the Stoke Games Data and Assets License, which allows build planners and similar Tyr projects
 to use and redistribute these materials with technical changes only. Its text ships with the site as

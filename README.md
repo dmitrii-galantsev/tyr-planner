@@ -38,9 +38,10 @@ figure; `DPM, conditional` appears under Firepower when it differs.
 
 On [popi.tech/hq](https://popi.tech/hq/), the Build tab updates the address bar as you edit. Paste that
 address into Discord to preview the exact build, even if you never used **Save** or **Copy link**. Links
-are snapshots: editing the draft later does not change a link you already shared. Other tabs show
-`#v=<view>` instead and keep your draft in this browser. Saved builds are local to the browser too;
-sharing a link does not list a build in Community.
+are snapshots: editing the draft later does not change a link you already shared. Opening the plain
+planner URL starts an untitled stock build. Other tabs show `#v=<view>` instead and keep your draft
+in this browser. Saved builds are local to the browser too; sharing a link does not list a build in
+Community.
 
 **Save** keeps a named snapshot. Save under the same name to update it, or use a different name to keep
 both. If you leave the name blank, the planner names it after the tank. In **Saved builds**, use
@@ -93,6 +94,23 @@ URL, so there are no version numbers to bump by hand.
   GameData's images (`git -C GameData lfs pull --include "assets/images/**"`) and run `npm run assets`.
   A new tank, shell or component also needs an entry in the id lists at the top of `site/sharing.js`
   (append only: share codes index into those lists) and in `GAME_ORDER` in `site/core.js`.
+- **Client stock stats:** when the public GameData is older than the November 19, 2026 client
+  (CL 39928), `scripts/gamedata.mjs` overlays shared numeric tank stats from
+  `scripts/snapshots/client-39928.json`. These are client defaults, not measurements of live
+  server behavior. For example, both the garage and the client table give Alecto 1,000 stock HP,
+  while the notes say 1,050. Terrapin is editable: `scripts/terrapin.mjs` pairs the 22 talent
+  definitions in `DT_TalentTreeData.json` with the tier layout and link visible in screenshots
+  of the CL 39928 Tech Tree. Shelled Reload is conditional; Shell Break’s 6-energy-on-break
+  effect is described in its tooltip, not modeled as a permanent stat. Two CL 39928 game
+  exports, one for each keystone, verify tree version 37081 and serve as loadout test fixtures.
+  To regenerate the snapshot from already decoded JSON, run
+  `node scripts/import-client-dump.mjs --cl 39928 --tanks /path/to/export/json --talents /path/to/Terrapin/DT_TalentTreeData.json`
+  and review its stdout before replacing the snapshot. Compare the result with
+  `node scripts/compare-tank-stats.mjs /path/to/export/json`; it checks only shared numeric stats.
+- **Patch notes ahead of GameData:** the November 9 notes and
+  [November 19 notes](https://store.steampowered.com/news/app/2445260/view/678515671123886389)
+  still supply ability text and component changes not covered by the tank tables. Compare these
+  changes with the next public GameData export before retiring the patch-note overlays.
 - **Engine:** clone wackoisgod/tyrhq, then `npm install` and `npm run vendor:engine -- <path>`, then `npm test`.
 - **Preview card for plain links** (`site/og-default.png`): `cd server && npm ci && node make-og-default.mjs ../site`.
 
@@ -103,7 +121,9 @@ URL, so there are no version numbers to bump by hand.
 - the reference build `otf4zfz9` against the numbers tyrhq.com showed for it on 2026-11-11
   (233.5 damage, 56.2 % camo, 75.26 kph, 12 secondary shells, −11° gun depression, 2.5 s precision aim),
   enforced for GameData CL 37952; on other game versions every tank only has to compute;
-- share links for every tank's stock build and 360 random builds, plus the live and static draft URL formats and imported build names;
+- the November 19 overlay (stock health, Atlas, Seeker, four components) while it applies, and the
+  Terrapin tree and its two game exports while the planner supplies Terrapin;
+- share links for every tank’s stock build and 20 random builds per tank, plus the live and static draft URL formats and imported build names;
 - `TYR01_` game codes: byte parity with a code exported from tyrhq.com, UTF-16 names, round trips and
   rejection of malformed codes.
 

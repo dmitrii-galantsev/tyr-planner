@@ -270,6 +270,10 @@ table.data tbody tr:focus-visible { outline-offset: -2px; }
   .table-card { overflow-x: auto; }
   main { padding-inline: 0.6rem; }
 }
+@media (max-width: 1350px) {
+  #view-tanks > .table-card { overflow-x: auto; }
+  #tanks-table th { top: 0; }
+}
 @media (max-width: 600px) {
   .brand { display: none; }
   #views { flex: 1 1 auto; justify-content: space-between; gap: 0; }

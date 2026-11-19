@@ -7,7 +7,7 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { inflateSync, deflateSync } from 'node:zlib';
-import { computeBuild, computeBuildFirepower, createPlannerCatalog, getDefaultSelection, getPlannerTalentsForVehicle } from '../site/vendor/tyrhq-engine.js';
+import { canIncrementTalentPoint, computeBuild, computeBuildFirepower, createPlannerCatalog, getDefaultSelection, getPlannerTalentsForVehicle } from '../site/vendor/tyrhq-engine.js';
 import { encodeShare, decodeShare, encodeGameCode, decodeGameCode, buildUrl, buildTitle, PUBLIC_URL } from '../site/sharing.js';
 import { CODE_RE } from '../server/build.mjs';
 import { MAX_SAVED, selectionKey, parseSaved, putSaved, renameSaved, removeSaved, snapshotName } from '../site/saved.js';
@@ -68,6 +68,67 @@ for (const [key, want] of Object.entries(expected)) {
 const fire = computeBuildFirepower(index, reference);
 console.log(`     dpm ${fire.guaranteed.dpm.toFixed(2)} / ${fire.withConditional.dpm.toFixed(2)} conditional`);
 if (changelist === REFERENCE_CL) assert.equal(failures, 0, `${failures} stat mismatch(es) against tyrhq.com (233.5 damage, 56.2 % camo, 75.26 kph)`);
+
+if (bundle.metadata.patches.includes('11/19/26 balance patch')) {
+  for (const [id, hp] of [['blink', 1000], ['vtol', 950], ['drone', 1050], ['stealth', 950], ['seeker', 1000], ['vanguard', 1000]]) {
+    assert.equal(computeBuild(index, getDefaultSelection(index, id)).stats.MaxHealth, hp, `${id} stock health`);
+  }
+  const atlas = computeBuild(index, getDefaultSelection(index, 'sonar')).stats;
+  assert.equal(atlas.ReloadTime, 14);
+  assert.equal(atlas.GunMaxDepression, -7.5);
+  assert.equal(index.vehicleById.get('deadeye').stats.AbilityDuration, 17);
+  const byComponent = (id) => index.componentById.get(id);
+  assert.match(byComponent('weaknessanalyzer').description, /1\.5 seconds/);
+  assert.match(byComponent('adaptivehardening').description, /12% cap after 40 seconds/);
+  assert.match(byComponent('fabricator').description, /2 Tertiary Shells every 60 seconds/);
+  assert.doesNotMatch(byComponent('fabricator').description, /secondary/i);
+  assert.match(index.vehicleById.get('seeker').ability.description, /flight speed by 50%/);
+  const fixture = structuredClone(bundle);
+  fixture.vehicles.find((v) => v.id === 'vanguard').stats.StartingTertiaryShellsCount = 3;
+  const fixtureIndex = createPlannerCatalog(fixture);
+  const armed = { ...getDefaultSelection(fixtureIndex, 'vanguard'), componentIds: [] };
+  const base = computeBuild(fixtureIndex, armed).stats;
+  const duplicate = computeBuild(fixtureIndex, { ...armed, componentIds: ['duplicator'] }).stats;
+  assert.equal(base.StartingTertiaryShellsCount, 3);
+  assert.equal(duplicate.StartingTertiaryShellsCount, base.StartingTertiaryShellsCount);
+  assert.equal(duplicate.StartingSecondaryShellsCount, 2 * base.StartingSecondaryShellsCount);
+  assert.equal(duplicate.ShellDamage, base.ShellDamage + 5);
+  assert.equal(computeBuild(index, { ...armed, componentIds: ['weaknessanalyzer'] }).stats.ActiveReloadReductionTime, 1.5);
+  console.log('November 19 overlay ok: light-tank health, Atlas stats, Seeker, and four components');
+}
+
+if (index.talentTreeById.get('terrapin')?.version === 37081) {
+  const terrapin = getDefaultSelection(index, 'terrapin');
+  assert.equal(terrapin.vehicleId, 'terrapin');
+  assert.equal(computeBuild(index, terrapin).stats.MaxHealth, 1450);
+  const nodes = getPlannerTalentsForVehicle(index, terrapin.vehicleId);
+  assert.equal(nodes.length, 22);
+  const node = (n) => nodes.find(({ talent }) => talent.id === `terrapin-talent${n}`);
+  assert.deepEqual(node('007').prerequisiteIds, ['terrapin-talent003']);
+  assert.deepEqual(nodes.filter((n) => n.isKeystone).map((n) => n.talent.name), ['Shelled Reload', 'Shell Break']);
+  assert.deepEqual(node('027').talent.pointValues, [6]);
+  const shelled = { ...terrapin, talentPoints: { 'terrapin-talent026': 1 } };
+  assert.equal(computeBuild(index, shelled, { includeConditionalEffects: false }).stats.ReloadTime, 14);
+  assert.equal(computeBuild(index, shelled).stats.ReloadTime, 12.6);
+  assert.equal(computeBuild(index, shelled).breakdown.ReloadTime[0].conditional, true);
+  assert.equal(canIncrementTalentPoint(node('007'), nodes, { 'terrapin-talent002': 2, 'terrapin-talent003': 3 }, 0, 1, 5), false);
+  assert.equal(canIncrementTalentPoint(node('007'), nodes, { 'terrapin-talent003': 5 }, 0, 1, 5), true);
+  const gameExports = [
+    'TYR01_OQMAAHicldC9asMwEAfwy0enZMuWobSlkGQRsgppMgYPGUuwyS7MpRaVJSHLCX6Lvl7fpqoJ1BkcrEEITr8T9785AOx5gUbymhwxF5lEkqK13AgFI__60haxLoxWqFxJPs5oT1JfkrxSDh471KES2VcitYPnDpHkKGWcc_uJFoYevbbhrigqJZzQiqS1QbL3jitXcdXb_YWY-eOwdE_LWJt6db1gfjf99LYJfr4BJr62aHelXPoYqcX_xmuN0jd4COEbGIfwdxgE8Ig1y-3LGW321vv3KCxq2DB0HcSjbdAwjAUtkq0b_gvhxPpg',
+    'TYR01_OQMAAHicldC9bsIwEAfwaylT2dgYKqiQCovluFJpR5QhI0KJ2K3oIFYd2zJOq7wFr8fb1HxIhCFVPFiWzr-z7n8jAEh4iUbymmywELlEkqG13AgFPf_62hSxLo1WqNyerH7QbqX-TYtKOXhpUetK5N-p1A4mLSItUMq44HaHFh49mjbhsiwrJZzQimS1QZJ4x5WruOrsTiGG_jjcu_Es1qaeXy8Y_Zt-cN8ExwPAs6-9NbsyLn2MzOKt8Vqj9B36IfwTnkL4Ah4CeMTOy-3KGT3vrfPvUVjUsGHoRxCPvoKGYSxokeyy9z_hyvph',
+  ];
+  for (const [i, code] of gameExports.entries()) {
+    const decoded = await decodeGameCode(index, code);
+    assert.deepEqual(decoded.warnings, []);
+    assert.equal(decoded.selection.vehicleId, 'terrapin');
+    assert.equal(decoded.selection.talentPoints[`terrapin-talent0${26 + i}`], 1);
+    assert.equal(Object.values(decoded.selection.talentPoints).reduce((sum, n) => sum + n, 0), 31);
+    const output = await encodeGameCode(index, decoded.selection, decoded.name);
+    assert.deepEqual(await decodeGameCode(index, output), decoded);
+    assert.deepEqual(decodeShare(encodeShare(decoded.selection, decoded.name)), { t: decoded.name, sel: decoded.selection });
+  }
+  console.log('Terrapin ok: stock health, tree layout, Shelled Reload, two game exports at tree version 37081');
+}
 
 // ---------- 2. sharing ----------
 // Share links round-trip for every tank's stock build and for random builds.

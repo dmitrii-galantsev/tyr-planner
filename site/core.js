@@ -37,7 +37,7 @@ export const HEADLINE = ['MaxHealth', 'ShellDamage', 'DPM', 'ReloadTime', 'MaxSp
 // Same order as the in-game Tanks screen (newest tanks last within each class).
 export const GAME_ORDER = ['Alecto', 'Ikarus', 'Kestrel', 'Phantom', 'Fuse', 'Seeker',
   'Arbalest', 'Ark', 'Ranger', 'Rook', 'Tempest', 'Valor', 'Parallax',
-  'Atlas', 'Fortis', 'Helio', 'Maul', 'Tricera'];
+  'Atlas', 'Fortis', 'Helio', 'Maul', 'Tricera', 'Terrapin'];
 const gameRank = (v) => {
   const i = GAME_ORDER.indexOf(v?.name);
   return i < 0 ? GAME_ORDER.length : i;

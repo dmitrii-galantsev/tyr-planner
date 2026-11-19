@@ -1,6 +1,6 @@
 import { getDefaultSelection } from './vendor/tyrhq-engine.js';
 
-const VEHICLES = 'blink brawler bush canopener deadeye drone healer ram ranger recall seeker sentinel slow sonar stealth vanguard vtol wall'.split(' ');
+const VEHICLES = 'blink brawler bush canopener deadeye drone healer ram ranger recall seeker sentinel slow sonar stealth vanguard vtol wall terrapin'.split(' ');
 const AMMO = 'abilityresource gargantuan highaccuracy highexplosive leech mobility momentum silenced spotting standard unstable'.split(' ');
 const COMPONENTS = 'adaptivehardening agitator bulkheads camoweb cascadegate catalyticreservoir coreamp corebooster coreinjector densifier driftsparker duplicator energyexpander energyvent extendedgearing fabricator frictioncapacitor hotchamber hullbellows kineticabsorber microplating modulesurger momentumimparter overflowshunt phasemodule powerconverter propagationdrive quickslot reactivemodules redirectorgear relentlessadapter repairmechanism senseoverdrive sensitivesights shellcharger shellstabilizer shiftcloak sidescrapegear signatureobscurer stablerangefinder synchronizer vulnbreaker weaknessanalyzer'.split(' ');
 
