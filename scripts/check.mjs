@@ -105,6 +105,11 @@ if (index.talentTreeById.get('terrapin')?.version === 37081) {
   assert.equal(nodes.length, 22);
   const node = (n) => nodes.find(({ talent }) => talent.id === `terrapin-talent${n}`);
   assert.deepEqual(node('007').prerequisiteIds, ['terrapin-talent003']);
+  assert.equal(node('006').maxPoints, 2);
+  assert.deepEqual(node('006').talent.pointValues, [-1.15, -2.3]);
+  const overRank = normalizeSelection(index, { ...terrapin, talentPoints: { 'terrapin-talent006': 3 } });
+  assert.equal(overRank.talentPoints['terrapin-talent006'], 2);
+  assert.ok(Math.abs(computeBuild(index, overRank).stats.ShellSwapTime - 1.7) < 1e-6);
   assert.deepEqual(nodes.filter((n) => n.isKeystone).map((n) => n.talent.name), ['Shelled Reload', 'Shell Break']);
   assert.deepEqual(node('027').talent.pointValues, [6]);
   const shelled = { ...terrapin, talentPoints: { 'terrapin-talent026': 1 } };

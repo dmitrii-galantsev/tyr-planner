@@ -99,8 +99,9 @@ URL, so there are no version numbers to bump by hand.
   `scripts/snapshots/client-39928.json`. These are client defaults, not measurements of live
   server behavior. For example, both the garage and the client table give Alecto 1,000 stock HP,
   while the notes say 1,050. Terrapin is editable: `scripts/terrapin.mjs` pairs the 22 talent
-  definitions in `DT_TalentTreeData.json` with the tier layout and link visible in screenshots
-  of the CL 39928 Tech Tree. Shelled Reload is conditional; Shell Break’s 6-energy-on-break
+  definitions in `DT_TalentTreeData.json` with the layout and rank caps shown in the CL 39928
+  Tech Tree. Shell Swap Time caps at two ranks in-game even though the client table contains
+  three values. Shelled Reload is conditional; Shell Break’s 6-energy-on-break
   effect is described in its tooltip, not modeled as a permanent stat. Two CL 39928 game
   exports, one for each keystone, verify tree version 37081 and serve as loadout test fixtures.
   To regenerate the snapshot from already decoded JSON, run

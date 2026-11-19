@@ -29,9 +29,10 @@ export function addTerrapin(bundle, client) {
       return { eventTag: event, effectPath: path, effectId: effect.id };
     });
     if (number === 26) bindings.push({ eventTag: 'Armored Shell active at reload start', effectPath: shellReloadPath, effectId: shellReload.id });
-    const maxPoints = talent.pointValues.length;
+    const pointValues = number === 6 ? talent.pointValues.slice(0, 2) : talent.pointValues;
+    const maxPoints = pointValues.length;
     const nodeId = talentId(number);
-    bundle.talents.push({ ...talent, id: nodeId, maxPoints, supplementalDescription: talent.supplement,
+    bundle.talents.push({ ...talent, id: nodeId, pointValues, maxPoints, supplementalDescription: talent.supplement,
       effectIds: bindings.map((b) => b.effectId), eventTags: bindings.map((b) => b.eventTag), effectBindings: bindings });
     return [{ talentId: nodeId, tier, row, maxPoints, isKeystone: tier === 6, prerequisiteIds: number === 7 ? [talentId(3)] : [] }];
   }));
