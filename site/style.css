@@ -339,6 +339,27 @@ table.data tbody tr:focus-visible { outline-offset: -2px; }
 .build-import-error { margin: 0; padding: 0.5rem; border: 1px solid var(--bad); border-radius: 0.375rem; color: var(--bad); overflow-wrap: anywhere; }
 .build-import-actions { display: flex; justify-content: flex-end; }
 
+.build-sources { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--line); }
+.build-sources a { padding: 0.45rem 0; color: var(--dim); text-decoration: none; border-bottom: 2px solid transparent; }
+.build-sources a[aria-current] { color: var(--fg); border-color: var(--accent); }
+.public-head { justify-content: space-between; align-items: start; }
+.public-head p, .public-status { margin: 0.25rem 0; color: var(--dim); }
+.public-list { list-style: none; max-width: 65rem; margin: 0; padding: 0; }
+.public-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.4rem 1rem; padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--line); }
+.public-row-copy { display: grid; gap: 0.15rem; min-width: 0; overflow-wrap: anywhere; }
+.public-row-title { font-weight: 700; }
+.public-byline { color: var(--dim); font-size: 0.88rem; }
+.public-form { display: grid; gap: 0.65rem; }
+.public-form label, label.public-form { display: grid; gap: 0.3rem; }
+.public-form input { width: 100%; }
+.public-form > button { justify-self: start; }
+#profile-login { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+#profile-new-key { margin-bottom: 1rem; }
+#profile-copy-key { margin-top: 0.5rem; }
+.public-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.65rem; }
+.public-error { margin: 0.5rem 0; color: var(--bad); }
+.public-form input, #public-controls input, #public-controls select { font-size: max(1rem, 16px); }
+
 /* ===== 4. Tyr skin ===== */
 /* Navy-slate panels, hairline outlines, off-white "owned" cards with a teal corner notch,
    cyan primary action, amber progress, spaced uppercase mono labels. */

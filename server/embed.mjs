@@ -1,21 +1,18 @@
-// TYR HQ link previews.
-//   GET /hq/b/<code>       -> small HTML page with Open Graph / Twitter tags for Discord and other unfurlers
-//                             (title and card only: the card carries the build, so the embed has no text
-//                             summary); browsers are sent on to the planner at /hq/#s=<code>.
-//   GET /hq/og/<code>.png  -> the rendered build card (1200x630).
-// nginx proxies only those two prefixes here; everything else stays static.
 import http from 'node:http';
 import { loadSite, buildFromCode, CODE_RE } from './build.mjs';
 import { renderCard, W, H } from './card.mjs';
+import { createLoadouts, stateDirFromEnv } from './loadouts.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const HOST = process.env.HOST || '127.0.0.1';
 const SITE_DIR = process.env.SITE_DIR || '/opt/data/www/hq';
 const PUBLIC_BASE = (process.env.PUBLIC_BASE || 'https://popi.tech/hq/').replace(/\/?$/, '/');
-const CARD_VERSION = '1';
+const BASE_PATH = new URL(PUBLIC_BASE).pathname;
+const CARD_VERSION = '2';
 
 const site = await loadSite(SITE_DIR);
 const cacheKey = `${CARD_VERSION}-${site.version}`;
+const loadouts = createLoadouts({ site, dir: stateDirFromEnv(), publicBase: PUBLIC_BASE });
 const pngCache = new Map(); // code -> Buffer, LRU by insertion order
 const MAX_CACHE = 300;
 let rendering = 0;
@@ -81,17 +78,19 @@ async function card(b) {
 
 const server = http.createServer(async (req, res) => {
   try {
-    if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'text/plain', 'method not allowed', { Allow: 'GET, HEAD' });
     const url = new URL(req.url, 'http://x');
     const p = url.pathname;
+    if (await loadouts.handle(req, res, p)) return;
+    if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'text/plain', 'method not allowed', { Allow: 'GET, HEAD' });
     if (p === '/healthz') return send(res, 200, 'text/plain', `ok ${cacheKey}\n`);
-    let m = p.match(/^\/hq\/b\/([^/]+)\/?$/);
+    const sub = p.startsWith(BASE_PATH) ? p.slice(BASE_PATH.length) : null;
+    let m = sub?.match(/^b\/([^/]+)\/?$/);
     if (m) {
       const b = CODE_RE.test(m[1]) ? buildFromCode(site, m[1]) : null;
       if (!b) return send(res, 302, 'text/plain', 'unknown build', { Location: PUBLIC_BASE });
       return send(res, 200, 'text/html; charset=utf-8', page(b), { 'Cache-Control': 'public, max-age=300' });
     }
-    m = p.match(/^\/hq\/og\/([^/]+)\.png$/);
+    m = sub?.match(/^og\/([^/]+)\.png$/);
     if (m) {
       const b = CODE_RE.test(m[1]) ? buildFromCode(site, m[1]) : null;
       if (!b) return send(res, 404, 'text/plain', 'unknown build');
@@ -105,4 +104,6 @@ const server = http.createServer(async (req, res) => {
     return send(res, 500, 'text/plain', 'error');
   }
 });
-server.listen(PORT, HOST, () => console.log(`tyrhq-embed on ${HOST}:${PORT}, site ${SITE_DIR}, data ${site.version}`));
+server.headersTimeout = 10e3;
+server.requestTimeout = 20e3;
+server.listen(PORT, HOST, () => console.log(`tyrhq-embed on ${HOST}:${PORT}${BASE_PATH}, site ${SITE_DIR}, data ${site.version}, loadouts ${loadouts.enabled ? stateDirFromEnv() : 'off'}`));

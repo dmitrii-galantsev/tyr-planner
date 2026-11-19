@@ -121,8 +121,6 @@ export async function renderCard(site, b) {
   g.addColorStop(1, 'rgba(19,24,32,0.05)');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = C.paper;
-  ctx.fillRect(0, 0, W, 4);
 
   // ---- tank render (Stoke Games GameData), top right ----
   const art = await img(path.join(dir, 'images/vehicles', `${v.id}-l.webp`));

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#131820">
-<meta name="description" content="Tyr build planner: tanks, talents, components, shells and community builds.">
+<meta name="description" content="Tyr build planner: tanks, talents, components, shells and public loadouts.">
 <title>Tyr HQ build planner</title>
 <link rel="icon" href="./favicon.svg" type="image/svg+xml">
 <link rel="icon" href="./favicon-32.png" sizes="32x32" type="image/png">
@@ -15,7 +15,7 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="TYR HQ · Tyr build planner">
 <meta property="og:url" content="https://popi.tech/hq/">
-<meta property="og:image" content="https://popi.tech/hq/og-default.png">
+<meta property="og:image" content="https://popi.tech/hq/og-default.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,7 +30,7 @@
   <nav id="views" aria-label="Views">
     <a href="#v=build" data-view="build">Build</a>
     <a href="#v=tanks" data-view="tanks">Tanks</a>
-    <a href="#v=builds" data-view="builds">Community</a>
+    <a href="#v=loadouts" data-view="loadouts">Builds</a>
     <a href="#v=components" data-view="components">Components</a>
     <a href="#v=talents" data-view="talents">Talents</a>
   </nav>
@@ -51,6 +51,7 @@
         <div class="export" role="group" aria-label="Share">
           <button id="act-code" type="button" class="primary" data-icon="export" title="Copy a TYR01 code for Tyr's loadout import">Export</button>
           <button id="act-link" type="button" class="secondary" data-icon="link" title="Copy a link to this build (L). It shows the whole build when posted on Discord.">Copy link</button>
+          <button id="act-publish" type="button" data-icon="plus">Publish</button>
         </div>
         <div class="local" role="group" aria-label="This browser">
           <button id="act-save" type="button" data-icon="bookmark" title="Save in this browser (S)">Save</button>
@@ -109,10 +110,36 @@
     <div class="table-card"><table id="tanks-table" class="data clickable"></table></div>
   </section>
 
+  <section id="view-loadouts" class="view" data-view="loadouts" hidden>
+    <nav class="build-sources" aria-label="Loadout source">
+      <a href="#v=loadouts" aria-current="page">Public loadouts</a>
+      <a href="#v=builds" data-open-view="builds">Imported from TyrHQ</a>
+    </nav>
+    <div class="view-head public-head">
+      <div>
+        <h1>Public loadouts</h1>
+        <p>Builds posted here by players. Anyone can browse, open, or publish a build without signing in.</p>
+      </div>
+      <button id="public-profile" type="button" data-icon="bookmark" hidden>Profile</button>
+    </div>
+    <p id="public-host-note" hidden><a href="https://popi.tech/hq/#v=loadouts">Browse and publish on popi.tech</a>.</p>
+    <div id="public-controls" class="view-head" hidden>
+      <input id="public-search" class="search" type="search" placeholder="Search loadouts or authors" aria-label="Search public loadouts" autocomplete="off">
+      <select id="public-tank" aria-label="Filter public loadouts by tank"></select>
+      <span id="public-count" class="sub" role="status"></span>
+    </div>
+    <p id="public-status" class="public-status" role="status" hidden></p>
+    <ul id="public-list" class="public-list" aria-label="Public loadouts"></ul>
+  </section>
+
   <section id="view-builds" class="view" data-view="builds" hidden>
+    <nav class="build-sources" aria-label="Loadout source">
+      <a href="#v=loadouts" data-open-view="loadouts">Public loadouts</a>
+      <a href="#v=builds" aria-current="page">Imported from TyrHQ</a>
+    </nav>
     <div class="view-head">
-      <h1>Community builds</h1>
-      <input id="builds-search" class="search" type="search" placeholder="Search name or author" autocomplete="off" spellcheck="false" aria-label="Search community builds">
+      <h1>TyrHQ builds</h1>
+      <input id="builds-search" class="search" type="search" placeholder="Search name or author" autocomplete="off" spellcheck="false" aria-label="Search imported TyrHQ builds">
       <select id="builds-tank" aria-label="Filter by tank"></select>
       <span id="builds-count" class="sub"></span>
     </div>
@@ -140,6 +167,43 @@
     <div id="talents-list" class="talents-list"></div>
   </section>
 </main>
+
+<dialog id="publish-dialog" class="build-import" aria-labelledby="publish-heading">
+  <h2 id="publish-heading">Publish this loadout</h2>
+  <p>This makes a public snapshot. It doesn’t change your saved builds or post to TyrHQ.</p>
+  <form id="publish-form" class="public-form">
+    <label>Loadout title <input id="publish-title" maxlength="48" required></label>
+    <label id="guest-author">Display name <small>(optional)</small><input id="publish-author" maxlength="24" autocomplete="nickname"></label>
+    <p id="publish-by" hidden></p>
+    <p id="publish-error" class="public-error" role="alert" hidden></p>
+    <div class="public-actions"><button type="button" data-close-dialog>Cancel</button><button class="primary" type="submit">Publish loadout</button></div>
+  </form>
+</dialog>
+<dialog id="profile-dialog" class="build-import" aria-labelledby="profile-heading">
+  <h2 id="profile-heading">Public loadout profile</h2>
+  <div id="profile-guest">
+    <p>Publishing as a guest is fine. Create a profile if you want to keep the same display name across browsers.</p>
+    <form id="profile-create" class="public-form">
+      <label>Display name <input id="profile-name" maxlength="24" autocomplete="nickname" required></label>
+      <button type="submit">Create profile</button>
+    </form>
+    <form id="profile-login" class="public-form">
+      <label>Private profile key <input id="profile-key" type="password" autocomplete="current-password" required></label>
+      <button type="submit">Sign in</button>
+    </form>
+  </div>
+  <div id="profile-member" hidden>
+    <p id="profile-user"></p>
+    <div id="profile-new-key" hidden>
+      <p>Save this key somewhere private. You’ll need it to sign in on another browser; it won’t be shown again.</p>
+      <label class="public-form">Your profile key <input id="profile-issued-key" readonly spellcheck="false" autocomplete="off"></label>
+      <button id="profile-copy-key" type="button">Copy key</button>
+    </div>
+    <button id="profile-logout" type="button">Sign out</button>
+  </div>
+  <p id="profile-error" class="public-error" role="alert" hidden></p>
+  <div class="public-actions"><button type="button" data-close-dialog>Done</button></div>
+</dialog>
 
 <footer id="foot"></footer>
 <script type="module" src="./app.js"></script>

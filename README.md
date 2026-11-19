@@ -6,7 +6,8 @@ into a card with the whole build.
 
 - **Live:** [popi.tech/hq](https://popi.tech/hq/), with Discord link previews and community builds
 - **GitHub Pages copy:** [dmitrii-galantsev.github.io/tyr-planner](https://dmitrii-galantsev.github.io/tyr-planner/),
-  built from this repository (no community builds; share links point to popi.tech)
+  built from this repository. Public loadouts and the TyrHQ import are hosted on popi.tech; the static
+  copy links there and can carry the current draft over for publishing.
 
 Unofficial fan project, not endorsed by Stoke Games.
 
@@ -17,7 +18,8 @@ Five views, switched from the top bar:
 - **Build**: components, shells and saved builds on the left, talent tree in the middle, stats on the
   right. `Export` copies a `TYR01_` code for the game's loadout import; `Copy link` copies a share link.
 - **Tanks**: stock stats for every tank, sortable, best value per column highlighted.
-- **Community**: builds from tyrhq.com, searchable and filterable by tank; click one to load it.
+- **Builds**: publish and browse **Public loadouts** on popi.tech, or switch to the separate
+  **Imported from TyrHQ** list. Both are searchable and filterable by tank.
 - **Components**: every component and the shell table.
 - **Talents**: every talent tree, searchable, filterable by tank.
 
@@ -40,13 +42,18 @@ On [popi.tech/hq](https://popi.tech/hq/), the Build tab updates the address bar 
 address into Discord to preview the exact build, even if you never used **Save** or **Copy link**. Links
 are snapshots: editing the draft later does not change a link you already shared. Opening the plain
 planner URL starts an untitled stock build. Other tabs show `#v=<view>` instead and keep your draft
-in this browser. Saved builds are local to the browser too; sharing a link does not list a build in
-Community.
+in this browser. Saved builds are local to the browser too; sharing a link does not list a build
+under Public loadouts.
 
 **Save** keeps a named snapshot. Save under the same name to update it, or use a different name to keep
 both. If you leave the name blank, the planner names it after the tank. In **Saved builds**, use
 the link icon beside a snapshot to share it without switching away from your draft. You can also rename
 or delete a snapshot; **Undo** is available after replacing or deleting one.
+
+Use **Publish** to list a public snapshot. Guests can leave the author name blank or enter one for that
+post. A signed-in profile sets the name automatically. Creating a profile gives you a private key:
+keep it somewhere safe to sign in on another browser. No email or password is required, and a lost
+key cannot be recovered. Public posts are separate from both browser saves and TyrHQ imports.
 
 The static GitHub Pages copy uses `#s=<code>` so drafts can reload without a server. Use **Copy link**
 there for a Discord preview. Old `#s=` and `#b=` bookmarks still open on the live planner.
@@ -151,12 +158,24 @@ The preview service (`server/`, systemd unit `server/tyrhq-embed.service`, liste
 - `GET /hq/b/<code>`: a page with Open Graph and Twitter tags (the build's title and its card) that sends
   browsers on to `/hq/#s=<code>`;
 - `GET /hq/og/<code>.png`: the card, rendered with `@napi-rs/canvas` (about 160 ms, then cached);
-- it imports `data.js`, `core.js` and `sharing.js` from the deployed site, so a preview always matches
-  the planner.
+- `GET /hq/api/loadouts` lists the latest 100 public posts; `POST /hq/api/loadouts` publishes a valid
+  build as a guest or signed-in profile. `/hq/api/profile` handles profile creation and sign-in.
+- the service imports the deployed site’s data and build modules, so previews and validation use the
+  same rules as the planner.
 
-nginx pieces: `server/nginx-tyrhq-embed.conf` (in the server block: proxies the two paths above, falls back
-to the static planner if the service is down, and sends `Cache-Control: no-cache` for the planner's page,
-scripts and data) and `server/nginx-tyrhq-cache.conf` (http level: the map behind that header).
+Public posts and profiles live outside the site tree in `/var/lib/tyr-planner-loadouts/`. Back up the
+whole directory as private data. For a local API test, run `npm run build` and then
+`node --test server/loadouts.test.mjs`. To enable public posting on an existing install, install
+ the updated `tyrhq-embed.service` and nginx snippet, run `systemctl daemon-reload` and `nginx -t`,
+ then perform the normal site sync and reload nginx.
+
+To remove a post safely, stop the embed service, then run the following as the service user:
+`LOADOUTS_DIR=/var/lib/tyr-planner-loadouts node server/loadouts.mjs remove <id>`. Start the service
+again afterward. Use `list` instead of `remove <id>` to find post IDs.
+
+nginx uses `server/nginx-tyrhq-embed.conf` to proxy shares, images, and the loadout API. Share links
+fall back to the static planner if the service is down. `server/nginx-tyrhq-cache.conf` sets the
+cache policy for planner assets.
 
 Setting up a server from scratch: clone the repository to `~/tyr-planner` with its submodule
 (`GIT_LFS_SKIP_SMUDGE=1`), install `git-lfs` and Pillow (`python3-pil`), copy the two units to

@@ -13,11 +13,13 @@ import { icon, decorate } from './icons.js';
 import { PUBLIC_URL, buildTitle, buildUrl, decodeShare, encodeGameCode } from './sharing.js';
 import { createComponentSlots, componentImage } from './components.js';
 import { openBuildImport } from './import.js';
+import { bindPublicLoadouts } from './loadouts.js';
 import { SAVED_KEY, MAX_SAVED, titleKey, selectionKey, readSaved, writeSaved, findSaved, snapshotName, putSaved, renameSaved, removeSaved } from './saved.js';
 
 const ONLY_CHANGED_KEY = 'tyrhq.onlyChanged';
 const DRAFT_KEY = 'tyrhq.draft'; // the build being edited, so a reload on another tab keeps it
-const VIEWS = ['build', 'tanks', 'builds', 'components', 'talents'];
+const VIEWS = ['build', 'tanks', 'builds', 'loadouts', 'components', 'talents'];
+let refreshPublicLoadouts;
 const KEY_OPS = { '+': 'add', '=': 'add', ArrowUp: 'add', '-': 'remove', _: 'remove', ArrowDown: 'remove', m: 'max', M: 'max', 0: 'clear', Backspace: 'clear', Delete: 'clear' };
 
 const idx = createPlannerCatalog(BUNDLE);
@@ -1139,7 +1141,7 @@ function renderBuilds() {
       // Copies built without data/builds.json (GitHub Pages, a fresh clone) have no community builds.
       const link = el('a', null, 'popi.tech/hq');
       link.href = `${PUBLIC_URL}#v=builds`;
-      td.append('Community builds are not included in this copy. Browse them on ', link, '.');
+      td.append('The TyrHQ import is not included in this copy. Browse it on ', link, '.');
     }
     td.colSpan = BUILD_COLS.length;
     tr.append(td);
@@ -1249,7 +1251,7 @@ function setView(view) {
   state.view = view;
   for (const section of $$('.view')) section.hidden = section.dataset.view !== view;
   for (const a of $$('#views a')) {
-    const on = a.dataset.view === view;
+    const on = a.dataset.view === view || (a.dataset.view === 'loadouts' && view === 'builds');
     a.classList.toggle('on', on);
     if (on) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');
@@ -1264,6 +1266,7 @@ function setView(view) {
     }
     if (view === 'talents') renderTalents();
   } else if (view === 'tanks') renderTanks();
+  if (view === 'loadouts') refreshPublicLoadouts?.();
   if (changed) window.scrollTo(0, 0);
   syncDraftUrl();
 }
@@ -1370,6 +1373,19 @@ function bind() {
     });
   }
 
+  for (const a of $$('[data-open-view]')) {
+    a.addEventListener('click', (e) => {
+      if (e.button || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      e.preventDefault();
+      setView(a.dataset.openView);
+    });
+  }
+  refreshPublicLoadouts = bindPublicLoadouts({
+    base: APP_BASE, vehicles: idx.vehicleById, tankChip,
+    openBuild: (sel, title) => { setSelection(sel, title); setView('build'); },
+    getDraft: () => ({ sel: state.sel, title: state.title }),
+    showLibrary: () => setView('loadouts'),
+  });
   fillTankSelect($('#builds-tank'), 'All tanks');
   fillTankSelect($('#talents-tank'), 'All tanks');
   $('#builds-search').addEventListener('input', renderBuilds);
@@ -1410,7 +1426,7 @@ function renderFooter() {
   const patched = gameData.patches?.length ? ` + ${gameData.patches.join(', ')} from patch notes` : '';
   const credits = [`Game data: Stoke Games GameData, CL ${gameData.changelist} (${gameData.generatedAt?.slice(0, 10)})${patched}`];
   if (gameData.clientStockChangelist) credits.push(`Stock stats: Tyr client CL ${gameData.clientStockChangelist}`);
-  if (builds) credits.push(`community builds from tyrhq.com${builds.fetchedAt ? ` (${builds.fetchedAt})` : ''}`);
+  if (builds) credits.push(`imported builds from tyrhq.com${builds.fetchedAt ? ` (${builds.fetchedAt})` : ''}`);
   credits.push('stat engine from Tyr HQ (MIT)', 'unofficial, not endorsed by Stoke Games');
   const lic = el('a', null, 'GameData license');
   lic.href = `${IMG_BASE}STOKE-GAMEDATA-LICENSE.txt`;

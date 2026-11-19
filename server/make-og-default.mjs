@@ -13,7 +13,6 @@ const s = Math.max(W / bd.width, H / bd.height);
 x.drawImage(bd, (W - bd.width * s) / 2, (H - bd.height * s) / 2, bd.width * s, bd.height * s);
 const g = x.createLinearGradient(0, 0, W, 0); g.addColorStop(0, 'rgba(19,24,32,0.85)'); g.addColorStop(0.7, 'rgba(19,24,32,0.2)'); g.addColorStop(1, 'rgba(19,24,32,0.1)');
 x.fillStyle = g; x.fillRect(0, 0, W, H);
-x.fillStyle = '#e8e8ff'; x.fillRect(0, 0, W, 4);
 const spaced = (t, px, py, sp) => { let cx = px; for (const ch of t) { x.fillText(ch, cx, py); cx += x.measureText(ch).width + sp; } return cx; };
 // mark
 x.fillStyle = '#e8e8ff'; x.beginPath(); x.moveTo(60, 62); x.lineTo(150, 62); x.lineTo(150, 128); x.lineTo(126, 152); x.lineTo(60, 152); x.closePath(); x.fill();
@@ -24,7 +23,7 @@ const tw = x.measureText('TYR').width;
 x.fillStyle = '#a4abc6'; x.font = '700 40px "JetBrains Mono"'; spaced('HQ', 176 + tw + 16, 96, 8);
 x.fillStyle = '#c3c9e0'; x.font = '500 30px "JetBrains Mono"'; spaced('TYR BUILD PLANNER', 64, 222, 6);
 x.fillStyle = '#e8eeff'; x.font = '600 26px "Inter"';
-x.fillText('Talents, components, shells and live stats for all 18 tanks.', 64, 276);
+x.fillText('Plan talents, components and shells, and see stats update live.', 64, 276);
 x.fillStyle = '#a4abc6';
 x.fillText('Share a build and it shows up in full on Discord.', 64, 314);
 const ids = ['blink', 'drone', 'vanguard', 'wall', 'recall', 'slow', 'sonar'];
