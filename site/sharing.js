@@ -46,6 +46,17 @@ export function encodeShare(selection, title = '') {
   return base64url(bytes);
 }
 
+export const PUBLIC_URL = 'https://popi.tech/hq/';
+
+export function buildTitle(value) {
+  return String(value ?? '').slice(0, 48).replace(/[\uD800-\uDBFF]$/, '');
+}
+
+export function buildUrl(base, selection, title) {
+  const code = encodeShare(selection, buildTitle(title));
+  return base === PUBLIC_URL ? `${base}b/${code}` : `${base}#s=${code}`;
+}
+
 export function decodeShare(text) {
   const bytes = fromBase64url(text);
   if (bytes.length < 8 || bytes[0] !== 1 || !VEHICLES[bytes[1]] || bytes[3] >> 6 || bytes[6] >> 2 || bytes.length < 8 + bytes[7]) throw new Error('Unsupported share link');

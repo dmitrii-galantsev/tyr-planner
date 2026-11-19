@@ -36,9 +36,19 @@ are zero before and after; `Only changed` hides the rest of the unchanged ones. 
 in the stats and are marked in each stat's breakdown (hover a stat). Headline DPM is the guaranteed
 figure; `DPM, conditional` appears under Firepower when it differs.
 
-The build is in the URL (`#s=<code>`) only on the Build tab; other tabs show `#v=<view>`. The build being
-edited is also kept in the browser (`localStorage`), so switching tabs or reloading keeps it. Saved builds
-stay in the browser too.
+On [popi.tech/hq](https://popi.tech/hq/), the Build tab updates the address bar as you edit. Paste that
+address into Discord to preview the exact build, even if you never used **Save** or **Copy link**. Links
+are snapshots: editing the draft later does not change a link you already shared. Other tabs show
+`#v=<view>` instead and keep your draft in this browser. Saved builds are local to the browser too;
+sharing a link does not list a build in Community.
+
+**Save** keeps a named snapshot. Save under the same name to update it, or use a different name to keep
+both. If you leave the name blank, the planner names it after the tank. In **Saved builds**, use
+the link icon beside a snapshot to share it without switching away from your draft. You can also rename
+or delete a snapshot; **Undo** is available after replacing or deleting one.
+
+The static GitHub Pages copy uses `#s=<code>` so drafts can reload without a server. Use **Copy link**
+there for a Discord preview. Old `#s=` and `#b=` bookmarks still open on the live planner.
 
 ## How it works
 
@@ -93,7 +103,7 @@ URL, so there are no version numbers to bump by hand.
 - the reference build `otf4zfz9` against the numbers tyrhq.com showed for it on 2026-11-11
   (233.5 damage, 56.2 % camo, 75.26 kph, 12 secondary shells, −11° gun depression, 2.5 s precision aim),
   enforced for GameData CL 37952; on other game versions every tank only has to compute;
-- share links for every tank's stock build and 360 random builds;
+- share links for every tank's stock build and 360 random builds, plus the live and static draft URL formats and imported build names;
 - `TYR01_` game codes: byte parity with a code exported from tyrhq.com, UTF-16 names, round trips and
   rejection of malformed codes.
 

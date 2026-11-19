@@ -28,9 +28,6 @@ export {
   groupStatCards,
 };
 
-// Share links always point here: it is the copy with the link-preview service in front of it.
-export const PUBLIC_URL = 'https://popi.tech/hq/';
-
 export const BUDGET = MAX_TOTAL_TALENT_POINTS;
 export const SLOT_NAMES = ['Primary', 'Secondary', 'Tertiary'];
 export const CLASS_ORDER = { light: 0, medium: 1, heavy: 2 };
@@ -86,10 +83,10 @@ export function normalizeSelection(idx, input) {
     return id;
   });
   const talentPoints = {};
+  const treeIds = new Set(idx.talentTreeById.get(v.id).nodes.map((node) => node.talentId));
   for (const [k, raw] of Object.entries(sel.talentPoints ?? {})) {
-    const t = idx.talentById.get(k);
     const n = Math.floor(Number(raw));
-    if (t && n > 0) talentPoints[k] = Math.min(n, t.maxPoints);
+    if (treeIds.has(k) && n > 0) talentPoints[k] = Math.min(n, idx.talentById.get(k).maxPoints);
   }
   const slot = Number(sel.previewAmmoSlot ?? v.loadout.previewAmmoSlot);
   return {

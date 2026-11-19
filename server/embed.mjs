@@ -26,7 +26,7 @@ const CLASS_COLOR = { light: '#8fbbe6', medium: '#dcc27f', heavy: '#e3a08a' };
 function page(b) {
   const appUrl = `${PUBLIC_BASE}#s=${b.code}`;
   const shareUrl = `${PUBLIC_BASE}b/${b.code}`;
-  const image = `${PUBLIC_BASE}og/${b.code}.png?v=${cacheKey}`;
+  const image = `${PUBLIC_BASE}og/${b.code}.png?v=${encodeURIComponent(cacheKey)}`;
   const title = b.title ? `${b.title} · ${b.v.name}` : `${b.v.name} build`;
   return `<!doctype html>
 <html lang="en">

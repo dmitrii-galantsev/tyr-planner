@@ -8,7 +8,10 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { inflateSync, deflateSync } from 'node:zlib';
 import { computeBuild, computeBuildFirepower, createPlannerCatalog, getDefaultSelection, getPlannerTalentsForVehicle } from '../site/vendor/tyrhq-engine.js';
-import { encodeShare, decodeShare, encodeGameCode, decodeGameCode } from '../site/sharing.js';
+import { encodeShare, decodeShare, encodeGameCode, decodeGameCode, buildUrl, buildTitle, PUBLIC_URL } from '../site/sharing.js';
+import { CODE_RE } from '../server/build.mjs';
+import { MAX_SAVED, selectionKey, parseSaved, putSaved, renameSaved, removeSaved, snapshotName } from '../site/saved.js';
+import { normalizeSelection } from '../site/core.js';
 import { loadBundle } from './gamedata.mjs';
 
 const bundle = loadBundle(path.resolve(import.meta.dirname, '..'));
@@ -86,6 +89,31 @@ for (const v of index.vehicles) {
   }
 }
 for (const s of samples) assert.deepEqual(decodeShare(encodeShare(s, 'Sample')), { t: 'Sample', sel: s });
+
+const imported = { ...reference, talentPoints: { ...reference.talentPoints, 'ram-talent001': 2 } };
+const normalized = normalizeSelection(index, imported);
+assert.deepEqual(normalized, reference);
+const longTitle = '盾'.repeat(47) + '🚀'.repeat(160);
+const draftUrl = new URL(buildUrl(PUBLIC_URL, normalized, longTitle));
+assert.equal(draftUrl.hash, '');
+const draftCode = draftUrl.pathname.split('/').at(-1);
+assert.equal(draftUrl.href, `${PUBLIC_URL}b/${draftCode}`);
+assert.match(draftCode, CODE_RE);
+assert.equal(buildTitle(longTitle), '盾'.repeat(47));
+assert.deepEqual(decodeShare(draftCode), { t: buildTitle(longTitle), sel: reference });
+assert.equal(buildUrl('https://example.com/planner/', normalized, longTitle), `https://example.com/planner/#s=${draftCode}`);
+
+const entry = { title: 'Fuse build', sel: reference };
+const oldList = parseSaved(JSON.stringify([entry, { ...entry, title: 'Fuse Build' }]));
+assert.equal(snapshotName(oldList, 'Fuse build'), 'Fuse build 2');
+assert.equal(renameSaved(oldList, 'Fuse build', 'Fuse Build'), null);
+assert.deepEqual(removeSaved(oldList, 'Fuse Build'), [entry]);
+assert.equal(renameSaved(oldList, 'Fuse build', 'Flanker')[0].title, 'Flanker');
+const revision = { ...entry, sel: { ...reference, previewAmmoSlot: 1 } };
+assert.notEqual(selectionKey(revision.sel), selectionKey(reference));
+assert.deepEqual(putSaved(oldList, revision), { list: [revision, oldList[1]], replaced: entry, dropped: [] });
+const fullList = Array.from({ length: MAX_SAVED }, (_, i) => ({ ...entry, title: String(i) }));
+assert.deepEqual(putSaved(fullList, entry).dropped, [fullList.at(-1)]);
 
 const build = { title: 'official costco build', selection: reference };
 const originalCode = 'TYR01_JAMAAHicldJPS8NAEAXwp-LFD-ChF-tF8RKaQFOvJYjeihp632wnydDNbtg_Yr69WASLktCd4_Kb5fGYGYBn0VGvxJBsqWWpKNkK3QRhd7gAcHcsCtP1RpP2LnnnRgsfLG0qJ4Mli5sx2XLtC2XEHrejhJQqWmEbsjgHcH8M110XNHs2OimHnpIXbtqnz14Zxx-Ehym6rlixH97ImWAl4XuuAZi6ZslCzaVxXpp5FVjtMJtsY3xv8wpc_U1dCkXal5Z-v_h5WyxSXMbw7H8nU3yJsxiex4VZHc7iVJ4uo7KneRx_jMqeZXE8PxT5BfyS9qY';
